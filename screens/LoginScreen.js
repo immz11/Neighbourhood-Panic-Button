@@ -1,20 +1,34 @@
-
-
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import styles from '../styles';
 
 export default function LoginScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setError('');
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      setError('Please enter both email and password.');
       return;
     }
 
-    // Add your real authentication logic here
-    Alert.alert('Success', `Logged in as ${email}`);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      navigation.navigate('Home', { userName: user.email });
+    } catch (err) {
+      let message = 'Login failed. Please try again.';
+      if (err.code === 'auth/user-not-found') message = 'User not found.';
+      else if (err.code === 'auth/wrong-password') message = 'Incorrect password.';
+      else if (err.code === 'auth/invalid-email') message = 'Invalid email format.';
+      setError(message);
+    }
   };
 
   return (
@@ -38,46 +52,16 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
 
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+  <Text style={styles.loginText}>Don't have an account? Sign up</Text>
+</TouchableOpacity>
+
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '600',
-    marginBottom: 30,
-    textAlign: 'center',
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ED4C5C',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#ED4C5C',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#000000',
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '500',
-  },
-});
