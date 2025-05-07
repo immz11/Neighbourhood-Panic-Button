@@ -7,6 +7,7 @@ import { SafeAreaView, StyleSheet } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './screens/HomeScreen';
+import './firebase';
 
 import SignUpScreen from './screens/SignUpScreen';
 import LoginScreen from './screens/LoginScreen';  // ✅ Login screen remains
