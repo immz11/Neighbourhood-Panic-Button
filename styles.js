@@ -69,6 +69,13 @@ const globalStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  panicButton: {
+  backgroundColor: 'red',
+  padding: 20,
+  borderRadius: 10,
+  marginTop: 30,
+  alignItems: 'center',
+},
   
 });
 

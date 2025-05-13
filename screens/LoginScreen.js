@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import styles from '../styles';
 
 export default function LoginScreen() {
@@ -21,12 +22,14 @@ export default function LoginScreen() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      navigation.navigate('Home', { userName: user.email });
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+
+      navigation.navigate('Home', { userData });
     } catch (err) {
-      let message = 'Login failed. Please try again.';
+      let message = 'Login failed.';
       if (err.code === 'auth/user-not-found') message = 'User not found.';
-      else if (err.code === 'auth/wrong-password') message = 'Incorrect password.';
-      else if (err.code === 'auth/invalid-email') message = 'Invalid email format.';
+      else if (err.code === 'auth/wrong-password') message = 'Wrong password.';
       setError(message);
     }
   };
@@ -34,24 +37,8 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Login</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email Address"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
+      <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -59,9 +46,12 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-  <Text style={styles.loginText}>Don't have an account? Sign up</Text>
-</TouchableOpacity>
+        <Text style={styles.loginText}>Don't have an account? Sign up</Text>
+      </TouchableOpacity>
 
+      <TouchableOpacity onPress={() => navigation.navigate('Panic', { isAnonymous: true })}>
+        <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>Quick Panic (Anonymous)</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

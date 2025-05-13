@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { setDoc, doc } from 'firebase/firestore';
 import styles from '../styles';
 
 export default function SignUpScreen() {
@@ -26,6 +27,15 @@ export default function SignUpScreen() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        fullName,
+        idNumber,
+        cellphone,
+        gender,
+        email,
+      });
+
       navigation.navigate('Home', { userName: fullName });
     } catch (err) {
       let message = 'Signup failed. Please try again.';
@@ -38,6 +48,14 @@ export default function SignUpScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Quick Panic Button */}
+      <TouchableOpacity
+        style={quickStyles.panicButton}
+        onPress={() => navigation.navigate('Panic')}
+      >
+        <Text style={quickStyles.panicText}>Quick Panic</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>Sign Up</Text>
 
       <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
@@ -93,3 +111,19 @@ export default function SignUpScreen() {
     </ScrollView>
   );
 }
+
+const quickStyles = StyleSheet.create({
+  panicButton: {
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    marginTop: 10,
+    backgroundColor: '#ED4C5C',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  panicText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+});
