@@ -23,7 +23,7 @@ export default function HomeScreen() {
       <Text style={styles.text}>Hello, {userData?.fullName || 'User'}!</Text>
 
       <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-        <Text style={styles.buttonText}>Sign Out</Text>
+        <Text style={styles.buttonText}>Sign Out  </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
