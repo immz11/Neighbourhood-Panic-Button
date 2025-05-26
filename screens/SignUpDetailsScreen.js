@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../firebase';
-import { setDoc, doc } from 'firebase/firestore';
-import styles from '../styles';
+// screens/SignUpDetailsScreen.js
 
-export default function SignUpScreen() {
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import styles from '../styles'; // your shared styles
+
+export default function SignUpDetailsScreen() {
   const navigation = useNavigation();
 
+  // --- Form State (Step 1) ---
   const [fullName, setFullName] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -17,49 +24,49 @@ export default function SignUpScreen() {
   const [gender, setGender] = useState('');
   const [error, setError] = useState('');
 
-  const handleSignUp = async () => {
+  const handleNext = () => {
     setError('');
     if (!fullName || !idNumber || !email || !cellphone || !password || !gender) {
       setError('Please fill in all fields.');
       return;
     }
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await setDoc(doc(db, 'users', user.uid), {
-        fullName,
-        idNumber,
-        cellphone,
-        gender,
-        email,
-      });
-
-      navigation.navigate('Home', { userName: fullName });
-    } catch (err) {
-      let message = 'Signup failed. Please try again.';
-      if (err.code === 'auth/email-already-in-use') message = 'Email already in use.';
-      else if (err.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
-      else if (err.code === 'auth/invalid-email') message = 'Invalid email format.';
-      setError(message);
-    }
+    // Navigate to the Neighborhood screen, passing along all collected values
+    navigation.navigate('SignUpNeighborhood', {
+      fullName,
+      idNumber,
+      email,
+      cellphone,
+      password,
+      gender,
+    });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Quick Panic Button */}
+    <ScrollView contentContainerStyle={localStyles.container}>
+      {/* Quick Panic Button (optional) */}
       <TouchableOpacity
-        style={quickStyles.panicButton}
+        style={localStyles.quickPanicButton}
         onPress={() => navigation.navigate('Panic')}
       >
-        <Text style={quickStyles.panicText}>Quick Panic</Text>
+        <Text style={localStyles.quickPanicText}>Quick Panic</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Sign Up</Text>
+      <Text style={styles.title}>Sign Up – Step 1 of 2</Text>
+      <Text style={styles.subtitle}>Enter your basic details</Text>
 
-      <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
-      <TextInput style={styles.input} placeholder="ID or Passport Number" value={idNumber} onChangeText={setIdNumber} />
+      <TextInput
+        style={styles.input}
+        placeholder="Full Name"
+        value={fullName}
+        onChangeText={setFullName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="ID or Passport Number"
+        value={idNumber}
+        onChangeText={setIdNumber}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email Address"
@@ -83,16 +90,22 @@ export default function SignUpScreen() {
         onChangeText={setPassword}
       />
 
-      <Text style={styles.label}>Select Gender</Text>
+      <Text style={[styles.label, { marginTop: 12 }]}>Select Gender</Text>
       <View style={styles.genderContainer}>
         <TouchableOpacity
-          style={[styles.genderButton, gender === 'male' && styles.genderButtonSelected]}
+          style={[
+            styles.genderButton,
+            gender === 'male' && styles.genderButtonSelected,
+          ]}
           onPress={() => setGender('male')}
         >
           <Text style={styles.genderText}>Male</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.genderButton, gender === 'female' && styles.genderButtonSelected]}
+          style={[
+            styles.genderButton,
+            gender === 'female' && styles.genderButtonSelected,
+          ]}
           onPress={() => setGender('female')}
         >
           <Text style={styles.genderText}>Female</Text>
@@ -101,8 +114,8 @@ export default function SignUpScreen() {
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Submit</Text>
+      <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Text style={styles.buttonText}>Next →</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -112,18 +125,24 @@ export default function SignUpScreen() {
   );
 }
 
-const quickStyles = StyleSheet.create({
-  panicButton: {
+const localStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 60,
+    backgroundColor: '#F9FAFB',
+    flexGrow: 1,
+  },
+  quickPanicButton: {
     alignSelf: 'flex-end',
-    marginRight: 20,
-    marginTop: 10,
+    marginBottom: 20,
     backgroundColor: '#ED4C5C',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 8,
   },
-  panicText: {
-    color: '#fff',
+  quickPanicText: {
+    color: '#FFF',
     fontSize: 14,
   },
 });

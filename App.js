@@ -1,40 +1,64 @@
-import * as React from "react";
+// App.js
+
+import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './screens/HomeScreen';
-import SignUpScreen from './screens/SignUpScreen';
-import LoginScreen from './screens/LoginScreen';
-import PanicScreen from './screens/PanicScreen';
-import './firebase';
 
-const Stack = createNativeStackNavigator();
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase'; // make sure this points to the same firebase.js that exports auth
 
-const App = () => {
+// Our two stacks:
+import AuthStack from './screens/AuthStack';
+import MainStack from './screens/MainStack';
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    // Subscribe to authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (initializing) {
+        setInitializing(false);
+      }
+    });
+
+    // Unsubscribe on unmount
+    return unsubscribe;
+  }, [initializing]);
+
+  // While Firebase checks the auth token, we show a loading spinner
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ED4C5C" />
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="SignUp" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="SignUp" component={SignUpScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Panic" component={PanicScreen} />
-          </Stack.Navigator>
+          {user ? <MainStack /> : <AuthStack />}
         </NavigationContainer>
         <StatusBar style="auto" />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
-
-export default App;
