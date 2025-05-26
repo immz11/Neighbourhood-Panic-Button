@@ -8,6 +8,7 @@ export default function PanicScreen({ navigation }) {
   const [sending, setSending] = useState(false);
   const [cancelled, setCancelled] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const [showReassurance, setShowReassurance] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,12 +58,17 @@ export default function PanicScreen({ navigation }) {
         }
       } else {
         alertData.anonymous = true;
-        alertData.deviceId = 'Unavailable'; // replace with device ID if accessible
+        alertData.deviceId = 'Unavailable'; // optional
       }
 
       await addDoc(collection(db, 'panic_alerts'), alertData);
-      Alert.alert('Alert Sent', 'Panic alert has been sent.');
-      navigation.goBack();
+      setShowReassurance(true);
+
+      // show reassurance for 3 seconds before navigating back
+      setTimeout(() => {
+        Alert.alert('Alert Sent', 'Panic alert has been sent.');
+        navigation.goBack();
+      }, 3000);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to send panic alert.');
@@ -77,17 +83,23 @@ export default function PanicScreen({ navigation }) {
     navigation.goBack();
   };
 
+  if (showReassurance) {
+    return (
+      <View style={styles.reassuranceContainer}>
+        <Text style={styles.reassuranceText}>🛡️ I'm nearby, just hang in a little bit, okay?</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Sending Panic Alert in {countdown}s...</Text>
       {sending ? (
         <ActivityIndicator size="large" color="#ED4C5C" />
       ) : (
-        <>
-          <TouchableOpacity style={styles.cancelButton} onPress={cancelAlert}>
-            <Text style={styles.cancelText}>Cancel Alert</Text>
-          </TouchableOpacity>
-        </>
+        <TouchableOpacity style={styles.cancelButton} onPress={cancelAlert}>
+          <Text style={styles.cancelText}>Cancel Alert</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -115,5 +127,18 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 16,
     color: '#000',
+  },
+  reassuranceContainer: {
+    flex: 1,
+    backgroundColor: '#bb0365',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+  },
+  reassuranceText: {
+    fontSize: 24,
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
