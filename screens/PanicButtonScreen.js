@@ -1,53 +1,79 @@
+// /screens/PanicButtonScreen.js
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
-import styles from '../styles';
-import * as Location from 'expo-location';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useUser } from '../UserContext';
 
-export default function PanicButtonScreen() {
+export default function PanicButtonScreen({ navigation }) {
   const { user } = useUser();
 
-  const sendPanicAlert = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission denied', 'Location access is needed for panic alerts.');
-      return;
-    }
-
-    const location = await Location.getCurrentPositionAsync({});
-    const payload = {
-      timestamp: new Date().toISOString(),
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    };
-
-    if (user) {
-      payload.name = user.name;
-      payload.email = user.email;
-      payload.phone = user.cellphone;
-      payload.gender = user.gender;
-      payload.idNumber = user.idNumber;
-      payload.type = 'FULL';
-    } else {
-      payload.type = 'ANONYMOUS';
-      payload.deviceId = 'some-unique-device-id'; // Optionally use a device ID library
-    }
-
-    // Replace this with your Firebase Firestore / API call
-    console.log("Sending panic alert:", payload);
-
-    Alert.alert('Panic alert sent!', `Type: ${payload.type}`);
+  const handlePress = (type) => {
+    navigation.navigate('PanicScreen', { emergencyType: type });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Panic Alert</Text>
-      <TouchableOpacity style={styles.panicButton} onPress={sendPanicAlert}>
-        <Text style={styles.buttonText}>SEND PANIC ALERT</Text>
+      <Text style={styles.title}>Choose Emergency Type</Text>
+
+      <TouchableOpacity
+        style={[styles.panicButton, { backgroundColor: '#E74C3C' }]}
+        onPress={() => handlePress('Fire')}
+      >
+        <Text style={styles.buttonText}>Fire</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.panicButton, { backgroundColor: '#F1C40F' }]}
+        onPress={() => handlePress('BreakingAndEntering')}
+      >
+        <Text style={styles.buttonText}>Breaking & Entering</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.panicButton, { backgroundColor: '#3498DB' }]}
+        onPress={() => handlePress('Other')}
+      >
+        <Text style={styles.buttonText}>Other</Text>
+      </TouchableOpacity>
+
       <Text style={styles.smallText}>
-        {user ? "This will send your full details." : "You are not logged in. This alert will be sent anonymously."}
+        {user
+          ? 'Logged in: this alert will include your details.'
+          : 'Not logged in: this alert will be sent anonymously.'}
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 22,
+    color: '#333',
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  panicButton: {
+    width: '80%',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  smallText: {
+    marginTop: 20,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+});

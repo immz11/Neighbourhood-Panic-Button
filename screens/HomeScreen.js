@@ -1,3 +1,4 @@
+// /screens/HomeScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -64,25 +65,113 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>Sign Out</Text>
       </TouchableOpacity>
 
+      <Text style={styles.emergencyPrompt}>
+        Select Emergency Type:
+      </Text>
+
+      {/* Fire Button */}
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#D00000', marginTop: 20 }]}
+        style={[styles.emergencyButton, { backgroundColor: '#E74C3C' }]}
         onPress={() =>
           navigation.navigate('Panic', {
+            emergencyType: 'Fire',
             userData: userData,
             isAnonymous: currentUser?.isAnonymous ?? true,
           })
         }
       >
-        <Text style={styles.buttonText}>PANIC BUTTON</Text>
+        <Text style={styles.emergencyText}>Fire</Text>
       </TouchableOpacity>
+
+      {/* Breaking & Entering Button */}
+      <TouchableOpacity
+        style={[styles.emergencyButton, { backgroundColor: '#F1C40F' }]}
+        onPress={() =>
+          navigation.navigate('Panic', {
+            emergencyType: 'BreakingAndEntering',
+            userData: userData,
+            isAnonymous: currentUser?.isAnonymous ?? true,
+          })
+        }
+      >
+        <Text style={styles.emergencyText}>Breaking & Entering</Text>
+      </TouchableOpacity>
+
+      {/* Other Button */}
+      <TouchableOpacity
+        style={[styles.emergencyButton, { backgroundColor: '#3498DB' }]}
+        onPress={() =>
+          navigation.navigate('Panic', {
+            emergencyType: 'Other',
+            userData: userData,
+            isAnonymous: currentUser?.isAnonymous ?? true,
+          })
+        }
+      >
+        <Text style={styles.emergencyText}>Other</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.noteText}>
+        {currentUser && !currentUser.isAnonymous
+          ? 'Logged in: full details will be sent.'
+          : 'Not logged in: this alert will be sent anonymously.'}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 24, marginBottom: 30, color: '#333' },
-  button: { backgroundColor: '#ED4C5C', padding: 15, borderRadius: 10 },
-  buttonText: { color: '#fff', fontSize: 17 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 24,
+    marginBottom: 30,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#ED4C5C',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 30,
+    width: '60%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 17,
+  },
+  emergencyPrompt: {
+    fontSize: 20,
+    color: '#333',
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  emergencyButton: {
+    width: '80%',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  emergencyText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  noteText: {
+    marginTop: 20,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
 });
