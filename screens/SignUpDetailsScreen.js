@@ -44,10 +44,10 @@ export default function SignUpDetailsScreen() {
 
   return (
     <ScrollView contentContainerStyle={localStyles.container}>
-      {/* Quick Panic Button (optional) */}
+      {/* Quick Panic Button */}
       <TouchableOpacity
         style={localStyles.quickPanicButton}
-        onPress={() => navigation.navigate('Panic')}
+        onPress={() => navigation.navigate('PanicAnonymous', { isAnonymous: true })}
       >
         <Text style={localStyles.quickPanicText}>Quick Panic</Text>
       </TouchableOpacity>
@@ -118,7 +118,7 @@ export default function SignUpDetailsScreen() {
         <Text style={styles.buttonText}>Next →</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ marginTop: 12 }}>
         <Text style={styles.loginText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </ScrollView>

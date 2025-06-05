@@ -1,10 +1,12 @@
+// /screens/PanicScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { auth, db } from '../firebase';
 import { collection, addDoc, getDoc, doc } from 'firebase/firestore';
 import * as Location from 'expo-location';
 
-export default function PanicScreen({ navigation }) {
+export default function PanicScreen({ navigation, route }) {
+  const { emergencyType } = route.params;
   const [sending, setSending] = useState(false);
   const [cancelled, setCancelled] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -29,15 +31,24 @@ export default function PanicScreen({ navigation }) {
   const sendPanicAlert = async () => {
     setSending(true);
     try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Location access is needed for panic alerts.');
+        setSending(false);
+        return;
+      }
+
       let location = await Location.getCurrentPositionAsync({});
       const user = auth.currentUser;
 
+      // Base alert data (location, timestamp, emergencyType)
       let alertData = {
         location: {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         },
         timestamp: new Date(),
+        emergencyType, // NEW FIELD: store Fire / BreakingAndEntering / Other
       };
 
       if (user) {
@@ -53,12 +64,15 @@ export default function PanicScreen({ navigation }) {
             gender: userData.gender,
             idNumber: userData.idNumber,
             email: user.email,
+            neighborhoodId: userData.neighborhoodId,
             anonymous: false,
           };
         }
       } else {
         alertData.anonymous = true;
         alertData.deviceId = 'Unavailable'; // optional
+        // If not logged in, neighborhoodId could be collected or left undefined. 
+        // (You could prompt for neighborhood if needed—but here we leave it out.)
       }
 
       await addDoc(collection(db, 'panic_alerts'), alertData);
@@ -66,7 +80,7 @@ export default function PanicScreen({ navigation }) {
 
       // show reassurance for 3 seconds before navigating back
       setTimeout(() => {
-        Alert.alert('Alert Sent', 'Panic alert has been sent.');
+        Alert.alert('Alert Sent', `Panic alert (${emergencyType}) has been sent.`);
         navigation.goBack();
       }, 3000);
     } catch (error) {
@@ -86,14 +100,18 @@ export default function PanicScreen({ navigation }) {
   if (showReassurance) {
     return (
       <View style={styles.reassuranceContainer}>
-        <Text style={styles.reassuranceText}>🛡️ I'm nearby, just hang in a little bit, okay?</Text>
+        <Text style={styles.reassuranceText}>
+          🛡️ Help is on the way for your {emergencyType} emergency. Hang in there!
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sending Panic Alert in {countdown}s...</Text>
+      <Text style={styles.title}>
+        Sending {emergencyType} Alert in {countdown}s...
+      </Text>
       {sending ? (
         <ActivityIndicator size="large" color="#ED4C5C" />
       ) : (
@@ -117,6 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#333',
     marginBottom: 20,
+    textAlign: 'center',
   },
   cancelButton: {
     backgroundColor: '#ccc',
