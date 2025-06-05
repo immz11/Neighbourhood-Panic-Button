@@ -1,48 +1,36 @@
-// LoginScreen.js
-
+// screens/LoginScreen.js
 import React, { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, ScrollView, View } from 'react-native';
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import styles from '../styles';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
+
+  // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // ---------- Forgot Password Flow ----------
-  const [showResetForm, setShowResetForm] = useState(false);
+  // Forgot‐password modal state
+  const [showResetModal, setShowResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetError, setResetError] = useState('');
-  const [resetSuccess, setResetSuccess] = useState('');
-
-  const handlePasswordReset = async () => {
-    setResetError('');
-    setResetSuccess('');
-
-    if (!resetEmail) {
-      setResetError('Please enter your email address.');
-      return;
-    }
-
-    try {
-      await sendPasswordResetEmail(auth, resetEmail);
-      setResetSuccess('Password reset link sent! Check your inbox.');
-    } catch (err) {
-      let message = 'Failed to send reset email.';
-      if (err.code === 'auth/user-not-found') {
-        message = 'No user found with that email.';
-      } else if (err.code === 'auth/invalid-email') {
-        message = 'Invalid email address.';
-      }
-      setResetError(message);
-    }
-  };
-  // ------------------------------------------
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleLogin = async () => {
     setError('');
@@ -52,90 +40,199 @@ export default function LoginScreen() {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const userData = userDoc.exists() ? userDoc.data() : null;
 
-      navigation.navigate('Home', { userData });
+      // Now that we have a user, go into MainStack → Home
+      navigation.navigate('Main', { screen: 'Home', params: { userData } });
     } catch (err) {
       let message = 'Login failed.';
       if (err.code === 'auth/user-not-found') message = 'User not found.';
-      else if (err.code === 'auth/wrong-password') message = 'Wrong password.';
+      else if (err.code === 'auth/wrong-password')
+        message = 'Wrong password.';
       setError(message);
     }
   };
 
+  const openResetModal = () => {
+    setResetEmail('');
+    setResetError('');
+    setResetMessage('');
+    setShowResetModal(true);
+  };
+
+  const closeResetModal = () => {
+    setShowResetModal(false);
+  };
+
+  const handleSendReset = async () => {
+    setResetError('');
+    setResetMessage('');
+
+    if (!resetEmail) {
+      setResetError('Please enter your email.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMessage('A password reset link has been sent to your email.');
+    } catch (err) {
+      let msg = 'Failed to send reset email.';
+      if (err.code === 'auth/user-not-found') {
+        msg = 'No account found with this email.';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = 'Please enter a valid email address.';
+      }
+      setResetError(msg);
+    }
+    setResetLoading(false);
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Login</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {/* Forgot Password link */}
+        <TouchableOpacity
+          onPress={openResetModal}
+          style={{ alignSelf: 'flex-end', marginRight: 10, marginTop: 8 }}
+        >
+          <Text style={{ color: '#007AFF' }}>Forgot Password?</Text>
+        </TouchableOpacity>
 
-      {/* Forgot Password Link */}
-      <TouchableOpacity onPress={() => setShowResetForm((prev) => !prev)}>
-        <Text style={{ color: '#0066cc', marginTop: 10, textAlign: 'right' }}>
-          Forgot Password?
-        </Text>
-      </TouchableOpacity>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {/* Reset Form (shown when showResetForm === true) */}
-      {showResetForm && (
-        <View style={{ marginTop: 15, width: '100%' }}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            value={resetEmail}
-            onChangeText={setResetEmail}
-          />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Sign In</Text>
+        </TouchableOpacity>
 
-          {resetError ? (
-            <Text style={styles.errorText}>{resetError}</Text>
-          ) : null}
+        {/* “Don’t have an account? Sign up” → go to SignUpDetails */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Auth', { screen: 'SignUpDetails' })}
+          style={{ marginTop: 12 }}
+        >
+          <Text style={styles.loginText}>
+            Don’t have an account? Sign up
+          </Text>
+        </TouchableOpacity>
 
-          {resetSuccess ? (
-            <Text style={{ color: 'green', marginBottom: 10 }}>{resetSuccess}</Text>
-          ) : null}
+        {/* Quick Panic (Anonymous) → goes to PanicAnonymous at root */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('PanicAnonymous', { isAnonymous: true })}
+          style={{ marginTop: 20 }}
+        >
+          <Text style={{ color: 'red', textAlign: 'center' }}>
+            Quick Panic (Anonymous)
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
 
-          <TouchableOpacity
-            style={[styles.button, { marginBottom: 10 }]}
-            onPress={handlePasswordReset}
+      {/* Password-Reset Modal */}
+      <Modal
+        visible={showResetModal}
+        animationType="slide"
+        transparent
+        onRequestClose={closeResetModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              width: '80%',
+              borderRadius: 8,
+              padding: 20,
+            }}
           >
-            <Text style={styles.buttonText}>Send Reset Link</Text>
-          </TouchableOpacity>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 12,
+                textAlign: 'center',
+              }}
+            >
+              Reset Password
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={resetEmail}
+              onChangeText={setResetEmail}
+            />
+
+            {resetError ? (
+              <Text style={[styles.errorText, { marginTop: 4 }]}>
+                {resetError}
+              </Text>
+            ) : null}
+
+            {resetMessage ? (
+              <Text
+                style={{
+                  color: 'green',
+                  marginTop: 8,
+                  textAlign: 'center',
+                }}
+              >
+                {resetMessage}
+              </Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 16 }]}
+              onPress={handleSendReset}
+              disabled={resetLoading}
+            >
+              <Text style={styles.buttonText}>
+                {resetLoading ? 'Sending...' : 'Send Reset Link'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ marginTop: 12, alignSelf: 'center' }}
+              onPress={closeResetModal}
+            >
+              <Text style={{ color: '#007AFF' }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
-
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Sign In</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.loginText}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate('Panic', { isAnonymous: true })}>
-        <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>
-          Quick Panic (Anonymous)
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+      </Modal>
+    </>
   );
 }
