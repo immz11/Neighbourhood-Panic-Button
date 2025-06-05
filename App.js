@@ -1,5 +1,3 @@
-// App.js
-
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -7,7 +5,8 @@ import { SafeAreaView, StyleSheet, View, ActivityIndicator } from 'react-native'
 import { NavigationContainer } from "@react-navigation/native";
 
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase'; // make sure this points to the same firebase.js that exports auth
+import { auth } from './firebase';
+import { initNotifications } from './services/NotificationService';
 
 // Our two stacks:
 import AuthStack from './screens/AuthStack';
@@ -29,6 +28,28 @@ export default function App() {
     // Unsubscribe on unmount
     return unsubscribe;
   }, [initializing]);
+
+  // Initialize local notifications
+  useEffect(() => {
+    let subscriptions = {};
+
+    (async () => {
+      subscriptions = await initNotifications(
+        notification => {
+          console.log('Notification received:', notification);
+        },
+        response => {
+          console.log('Notification response:', response);
+        }
+      );
+    })();
+
+    // Clean up listeners on unmount
+    return () => {
+      subscriptions.removeReceivedListener?.();
+      subscriptions.removeResponseListener?.();
+    };
+  }, []);
 
   // While Firebase checks the auth token, we show a loading spinner
   if (initializing) {
