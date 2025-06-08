@@ -7,7 +7,11 @@ import HomeScreen from './HomeScreen';
 import PanicScreen from './PanicScreen';
 
 const Stack = createNativeStackNavigator();
+import ContactsScreen from './ContactsScreen';
+import PanicButtonScreen from './PanicButtonScreen';
 
+<Stack.Screen name="Contacts" component={ContactsScreen} />
+<Stack.Screen name="PanicButton" component={PanicButtonScreen} />
 export default function MainStack() {
   return (
     <Stack.Navigator
