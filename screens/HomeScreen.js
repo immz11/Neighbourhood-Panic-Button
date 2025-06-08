@@ -110,7 +110,21 @@ export default function HomeScreen() {
       >
         <Text style={styles.emergencyText}>Other</Text>
       </TouchableOpacity>
+{/* Panic Buttons Navigation */}
+<TouchableOpacity
+  style={[styles.emergencyButton, { backgroundColor: '#9B59B6' }]}
+  onPress={() => navigation.navigate('PanicButton')}
+>
+  <Text style={styles.emergencyText}>View Panic Buttons</Text>
+</TouchableOpacity>
 
+{/* Emergency Contacts Navigation */}
+<TouchableOpacity
+  style={[styles.emergencyButton, { backgroundColor: '#1ABC9C' }]}
+  onPress={() => navigation.navigate('Contacts')}
+>
+  <Text style={styles.emergencyText}>Emergency Contacts</Text>
+</TouchableOpacity>
       <Text style={styles.noteText}>
         {currentUser && !currentUser.isAnonymous
           ? 'Logged in: full details will be sent.'
