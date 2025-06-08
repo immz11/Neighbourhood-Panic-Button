@@ -10,28 +10,43 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import styles from '../styles'; // your shared styles
+import styles from '../styles';
 
 export default function SignUpDetailsScreen() {
   const navigation = useNavigation();
 
-  // --- Form State (Step 1) ---
   const [fullName, setFullName] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [email, setEmail] = useState('');
   const [cellphone, setCellphone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [gender, setGender] = useState('');
   const [error, setError] = useState('');
 
+  const validatePhoneNumber = (number) => {
+    const regex = /^[0-9]{7,15}$/; // Adjust range as needed
+    return regex.test(number);
+  };
+
   const handleNext = () => {
     setError('');
-    if (!fullName || !idNumber || !email || !cellphone || !password || !gender) {
+
+    if (!fullName || !idNumber || !email || !cellphone || !password || !confirmPassword || !gender) {
       setError('Please fill in all fields.');
       return;
     }
 
-    // Navigate to the Neighborhood screen, passing along all collected values
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (!validatePhoneNumber(cellphone)) {
+      setError('Invalid phone number. Only numbers allowed (7–15 digits).');
+      return;
+    }
+
     navigation.navigate('SignUpNeighborhood', {
       fullName,
       idNumber,
@@ -44,7 +59,6 @@ export default function SignUpDetailsScreen() {
 
   return (
     <ScrollView contentContainerStyle={localStyles.container}>
-      {/* Quick Panic Button */}
       <TouchableOpacity
         style={localStyles.quickPanicButton}
         onPress={() => navigation.navigate('PanicAnonymous', { isAnonymous: true })}
@@ -80,7 +94,14 @@ export default function SignUpDetailsScreen() {
         placeholder="Cellphone Number"
         keyboardType="phone-pad"
         value={cellphone}
-        onChangeText={setCellphone}
+        onChangeText={(text) => {
+          setCellphone(text);
+          if (!validatePhoneNumber(text)) {
+            setError('Invalid phone number. Only numbers allowed (7–15 digits).');
+          } else {
+            setError('');
+          }
+        }}
       />
       <TextInput
         style={styles.input}
@@ -88,6 +109,13 @@ export default function SignUpDetailsScreen() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
       />
 
       <Text style={[styles.label, { marginTop: 12 }]}>Select Gender</Text>

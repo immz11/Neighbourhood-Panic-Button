@@ -51,15 +51,13 @@ export default function SignUpNeighborhoodScreen() {
     }
   }, []);
 
-  // --- State for neighborhoods & submission ---
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
-  const [townsData, setTownsData] = useState({}); // { Ongwediva: [ {id, name}, … ], Ondangwa: [ … ] }
+  const [townsData, setTownsData] = useState({});
   const [selectedTown, setSelectedTown] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // 1) Fetch all neighborhoods on mount
   useEffect(() => {
     async function fetchNeighborhoods() {
       try {
@@ -78,7 +76,6 @@ export default function SignUpNeighborhoodScreen() {
           mapping[town].push({ id: docId, name });
         });
 
-        // Sort towns alphabetically, and their neighborhoods:
         const sortedMapping = {};
         Object.keys(mapping)
           .sort()
@@ -90,7 +87,6 @@ export default function SignUpNeighborhoodScreen() {
 
         setTownsData(sortedMapping);
 
-        // Default to first town & its first neighborhood
         const allTowns = Object.keys(sortedMapping);
         if (allTowns.length > 0) {
           const firstTown = allTowns[0];
@@ -112,7 +108,6 @@ export default function SignUpNeighborhoodScreen() {
     fetchNeighborhoods();
   }, []);
 
-  // 2) Whenever the town changes, pick its first neighborhood
   useEffect(() => {
     if (selectedTown && townsData[selectedTown]) {
       const nbs = townsData[selectedTown];
@@ -124,7 +119,6 @@ export default function SignUpNeighborhoodScreen() {
     }
   }, [selectedTown, townsData]);
 
-  // 3) Called when the user presses “Submit”
   const handleSubmit = async () => {
     setError('');
     if (!selectedTown || !selectedNeighborhood) {
@@ -142,7 +136,7 @@ export default function SignUpNeighborhoodScreen() {
       );
       const user = userCredential.user;
 
-      // B) Write Firestore document under /users/{uid}
+      // B) Save user details
       await setDoc(doc(db, 'users', user.uid), {
         fullName,
         idNumber,
@@ -154,10 +148,10 @@ export default function SignUpNeighborhoodScreen() {
         createdAt: new Date(),
       });
 
-      // C) Navigate to Home (reset stack so user can’t go “back” into signup)
+      // C) Redirect to Login screen
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home', params: { userName: fullName } }],
+        routes: [{ name: 'Login' }],
       });
     } catch (err) {
       console.error('Signup error:', err);
@@ -174,7 +168,6 @@ export default function SignUpNeighborhoodScreen() {
     }
   };
 
-  // Show a loading spinner while fetching all neighborhood data
   if (loadingNeighborhoods) {
     return (
       <View style={localStyles.loadingContainer}>
@@ -186,7 +179,6 @@ export default function SignUpNeighborhoodScreen() {
 
   return (
     <ScrollView contentContainerStyle={localStyles.container}>
-      {/* Back Arrow: go back to Step 1 */}
       <TouchableOpacity
         style={localStyles.backArrow}
         onPress={() => navigation.goBack()}
@@ -197,14 +189,12 @@ export default function SignUpNeighborhoodScreen() {
       <Text style={styles.title}>Sign Up – Step 2 of 2</Text>
       <Text style={styles.subtitle}>Select your Town & Neighborhood</Text>
 
-      {/* ===== Town / Neighborhood “Filter” Card ===== */}
       <View style={localStyles.filterCard}>
         <View style={localStyles.filterHeader}>
           <Text style={localStyles.filterTitle}>Filter</Text>
           <Text style={localStyles.filterIcon}>☰</Text>
         </View>
 
-        {/* Choose City (Town) */}
         <Text style={localStyles.label}>Choose City</Text>
         <ScrollView
           horizontal
@@ -235,7 +225,6 @@ export default function SignUpNeighborhoodScreen() {
           })}
         </ScrollView>
 
-        {/* Choose Neighborhood */}
         <Text style={[localStyles.label, { marginTop: 16 }]}>
           Choose Neighborhood
         </Text>
@@ -314,12 +303,10 @@ const localStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 30,
-    // iOS shadow
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    // Android elevation
     elevation: 3,
   },
   filterHeader: {
@@ -354,7 +341,7 @@ const localStyles = StyleSheet.create({
     marginRight: 8,
   },
   chipSelected: {
-    backgroundColor: '#EF4444', // red-500
+    backgroundColor: '#EF4444',
   },
   chipText: {
     fontSize: 14,
