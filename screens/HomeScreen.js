@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import NeighborhoodInfo from '../components/NeighborhoodInfo';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -57,10 +58,15 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Greeting */}
       <Text style={styles.text}>
         Hello, {userData?.fullName || (currentUser?.isAnonymous ? 'Guest' : 'User')}!
       </Text>
 
+      {/* ── User & Neighborhood Info Component ── */}
+      <NeighborhoodInfo />
+
+      {/* Sign Out */}
       <TouchableOpacity style={styles.button} onPress={handleSignOut}>
         <Text style={styles.buttonText}>Sign Out</Text>
       </TouchableOpacity>
@@ -110,21 +116,23 @@ export default function HomeScreen() {
       >
         <Text style={styles.emergencyText}>Other</Text>
       </TouchableOpacity>
-{/* Panic Buttons Navigation */}
-<TouchableOpacity
-  style={[styles.emergencyButton, { backgroundColor: '#9B59B6' }]}
-  onPress={() => navigation.navigate('PanicButton')}
->
-  <Text style={styles.emergencyText}>View Panic Buttons</Text>
-</TouchableOpacity>
 
-{/* Emergency Contacts Navigation */}
-<TouchableOpacity
-  style={[styles.emergencyButton, { backgroundColor: '#1ABC9C' }]}
-  onPress={() => navigation.navigate('Contacts')}
->
-  <Text style={styles.emergencyText}>Emergency Contacts</Text>
-</TouchableOpacity>
+      {/* Panic Buttons Navigation */}
+      <TouchableOpacity
+        style={[styles.emergencyButton, { backgroundColor: '#9B59B6' }]}
+        onPress={() => navigation.navigate('PanicButton')}
+      >
+        <Text style={styles.emergencyText}>View Panic Buttons</Text>
+      </TouchableOpacity>
+
+      {/* Emergency Contacts Navigation */}
+      <TouchableOpacity
+        style={[styles.emergencyButton, { backgroundColor: '#1ABC9C' }]}
+        onPress={() => navigation.navigate('Contacts')}
+      >
+        <Text style={styles.emergencyText}>Emergency Contacts</Text>
+      </TouchableOpacity>
+
       <Text style={styles.noteText}>
         {currentUser && !currentUser.isAnonymous
           ? 'Logged in: full details will be sent.'
@@ -149,14 +157,14 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
-    marginBottom: 30,
+    marginBottom: 15,
     color: '#333',
   },
   button: {
     backgroundColor: '#ED4C5C',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 30,
+    marginVertical: 20,
     width: '60%',
     alignItems: 'center',
   },
