@@ -1,10 +1,18 @@
 // /screens/HomeScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import NeighborhoodList from '../screens/NeighborhoodList';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -41,7 +49,6 @@ export default function HomeScreen() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      // After signOut, auth state listener in App.js will handle navigation
     } catch (error) {
       Alert.alert('Error', 'Sign out failed');
     }
@@ -110,6 +117,9 @@ export default function HomeScreen() {
       >
         <Text style={styles.emergencyText}>Other</Text>
       </TouchableOpacity>
+
+      {/* Neighborhood & Alerts List */}
+      <NeighborhoodList neighborhoodId={userData?.neighborhoodId} />
 
       <Text style={styles.noteText}>
         {currentUser && !currentUser.isAnonymous
