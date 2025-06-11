@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "neighbourhood-alert",
-    "slug": "neighbourhood-alert",
+    "name": "haircut-booking-app",
+    "slug": "haircut-booking-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,6 +24,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f0083da3-429c-4945-899e-b9c91f8b7896"
+      }
     }
   }
 }
