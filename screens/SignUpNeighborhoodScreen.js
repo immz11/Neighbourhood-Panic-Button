@@ -1,5 +1,3 @@
-// screens/SignUpNeighborhoodScreen.js
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -148,11 +146,13 @@ export default function SignUpNeighborhoodScreen() {
         createdAt: new Date(),
       });
 
-      // C) Redirect to Login screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
+      // C) Redirect to Main (Home) screen after signup
+      const parentNav = navigation.getParent();
+      if (parentNav) {
+        parentNav.reset({ index: 0, routes: [{ name: 'Main' }] });
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      }
     } catch (err) {
       console.error('Signup error:', err);
       let message = 'Sign-up failed. Please try again.';
@@ -225,9 +225,7 @@ export default function SignUpNeighborhoodScreen() {
           })}
         </ScrollView>
 
-        <Text style={[localStyles.label, { marginTop: 16 }]}>
-          Choose Neighborhood
-        </Text>
+        <Text style={[localStyles.label, { marginTop: 16 }]}>Choose Neighborhood</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
