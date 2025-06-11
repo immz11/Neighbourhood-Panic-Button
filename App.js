@@ -1,4 +1,3 @@
-// App.js
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,7 +12,7 @@ import { auth } from './firebase';
 import AuthStack from './screens/AuthStack';
 import MainStack from './screens/MainStack';
 
-// We will import PanicScreen directly here:
+// Panic screen accessible to all:
 import PanicScreen from './screens/PanicScreen';
 
 const RootStack = createNativeStackNavigator();
@@ -25,11 +24,8 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (initializing) {
-        setInitializing(false);
-      }
+      if (initializing) setInitializing(false);
     });
-
     return unsubscribe;
   }, [initializing]);
 
@@ -46,23 +42,12 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <NavigationContainer>
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
-            {/* 
-              - AuthFlow (login / signup screens)
-              - MainFlow (home + any protected screens)
-              - PanicScreen (accessible to everyone)
-            */}
-            <RootStack.Screen
-              name="Auth"
-              component={AuthStack}
-            />
-            <RootStack.Screen
-              name="Main"
-              component={MainStack}
-            />
-            <RootStack.Screen
-              name="PanicAnonymous"
-              component={PanicScreen}
-            />
+            {user ? (
+              <RootStack.Screen name="Main" component={MainStack} />
+            ) : (
+              <RootStack.Screen name="Auth" component={AuthStack} />
+            )}
+            <RootStack.Screen name="PanicAnonymous" component={PanicScreen} />
           </RootStack.Navigator>
         </NavigationContainer>
         <StatusBar style="auto" />

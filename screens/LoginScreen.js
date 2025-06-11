@@ -1,4 +1,3 @@
-// screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   Text,
@@ -23,6 +22,7 @@ export default function LoginScreen() {
   // Login form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   // Forgot‐password modal state
@@ -110,13 +110,23 @@ export default function LoginScreen() {
           onChangeText={setEmail}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder="Password"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(prev => !prev)}
+            style={{ marginLeft: 10 }}
+          >
+            <Text style={{ color: '#007AFF', fontWeight: '500' }}>
+              {showPassword ? 'Hide' : 'Show'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Forgot Password link */}
         <TouchableOpacity
